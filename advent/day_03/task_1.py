@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, NamedTuple
 
+from returns.curry import partial
+
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
 from ..logs import setup_logging
@@ -41,7 +43,7 @@ def parse(lines: Iterable[str]) -> Schematic:
                     PartNumber(
                         row=row,
                         start_column=col - len(buf),
-                        end_column=col,
+                        end_column=col - 1,
                         value=int("".join(buf)),
                     )
                 )
@@ -59,6 +61,22 @@ def parse(lines: Iterable[str]) -> Schematic:
     return Schematic(symbols=symbols, part_numbers=part_numbers)
 
 
+def is_adjacent_to_symbol(symbols: set[Symbol], part_number: PartNumber) -> bool:
+    for symbol in symbols:
+        if (
+            abs(symbol.row - part_number.row) <= 1
+            and part_number.start_column - 1
+            <= symbol.column
+            <= part_number.end_column + 1
+        ):
+            logger.debug(
+                "Part %s is adjacent to symbol %s", part_number.value, symbol.value
+            )
+            return True
+    logger.warning("Part %s is not adjacent to any symbol", part_number.value)
+    return False
+
+
 @wrap_main
 def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
@@ -69,7 +87,11 @@ def main(filename: Path) -> str:
         logger.debug("Part %s", part_number)
     for symbol in sorted(schematics.symbols, key=lambda x: (x.row, x.column)):
         logger.debug("Symbol %s", symbol)
-    return str(sum([]))
+    part_numbers_adjacent_to_symbols = filter(
+        partial(is_adjacent_to_symbol, schematics.symbols), schematics.part_numbers
+    )
+    just_numbers = map(lambda pn: pn.value, part_numbers_adjacent_to_symbols)
+    return str(sum(just_numbers))
 
 
 if __name__ == "__main__":
