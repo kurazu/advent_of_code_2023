@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, NamedTuple
+from typing import Iterable, NamedTuple, Sequence
 
 from returns.curry import partial
 
@@ -57,11 +57,12 @@ def parse(lines: Iterable[str]) -> Schematic:
             else:
                 maybe_materialize_buffer()
                 symbols.add(Symbol(row=row, column=col, value=char))
+        col += 1
         maybe_materialize_buffer()
     return Schematic(symbols=symbols, part_numbers=part_numbers)
 
 
-def is_adjacent_to_symbol(symbols: set[Symbol], part_number: PartNumber) -> bool:
+def is_adjacent_to_symbol(symbols: Sequence[Symbol], part_number: PartNumber) -> bool:
     for symbol in symbols:
         if (
             abs(symbol.row - part_number.row) <= 1
@@ -87,8 +88,12 @@ def main(filename: Path) -> str:
         logger.debug("Part %s", part_number)
     for symbol in sorted(schematics.symbols, key=lambda x: (x.row, x.column)):
         logger.debug("Symbol %s", symbol)
+    symbols = sorted(schematics.symbols, key=lambda x: (x.row, x.column))
+    part_numbers = sorted(
+        schematics.part_numbers, key=lambda x: (x.row, x.start_column)
+    )
     part_numbers_adjacent_to_symbols = filter(
-        partial(is_adjacent_to_symbol, schematics.symbols), schematics.part_numbers
+        partial(is_adjacent_to_symbol, symbols), part_numbers
     )
     just_numbers = map(lambda pn: pn.value, part_numbers_adjacent_to_symbols)
     return str(sum(just_numbers))
