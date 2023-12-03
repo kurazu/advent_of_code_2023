@@ -1,9 +1,7 @@
 import logging
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, NamedTuple, Sequence
+from typing import Sequence
 
-import more_itertools as mit
 from returns.curry import partial
 
 from ..cli_utils import wrap_main

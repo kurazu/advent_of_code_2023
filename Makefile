@@ -1,11 +1,6 @@
-sample1:
-	poetry run python -m "advent.day_$(d).task_1" data/day_$(d)/sample.txt
+d ?= $(error Missing required parameter 'd')
+t ?= 1
+f ?= sample
 
-input1:
-	poetry run python -m "advent.day_$(d).task_1" data/day_$(d)/input.txt
-
-sample2:
-	poetry run python -m "advent.day_$(d).task_2" data/day_$(d)/sample.txt
-
-input2:
-	poetry run python -m "advent.day_$(d).task_2" data/day_$(d)/input.txt
+all:
+	poetry run python -m "advent.day_$(d).task_$(t)" data/day_$(d)/$(f).txt
