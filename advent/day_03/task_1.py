@@ -62,14 +62,16 @@ def parse(lines: Iterable[str]) -> Schematic:
     return Schematic(symbols=symbols, part_numbers=part_numbers)
 
 
+def is_adjacent(symbol: Symbol, part_number: PartNumber) -> bool:
+    return (
+        abs(symbol.row - part_number.row) <= 1
+        and part_number.start_column - 1 <= symbol.column <= part_number.end_column + 1
+    )
+
+
 def is_adjacent_to_symbol(symbols: Sequence[Symbol], part_number: PartNumber) -> bool:
     for symbol in symbols:
-        if (
-            abs(symbol.row - part_number.row) <= 1
-            and part_number.start_column - 1
-            <= symbol.column
-            <= part_number.end_column + 1
-        ):
+        if is_adjacent(symbol, part_number):
             logger.debug(
                 "Part %s is adjacent to symbol %s", part_number.value, symbol.value
             )
