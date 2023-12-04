@@ -1,10 +1,6 @@
 import logging
-import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, NamedTuple, Sequence
-
-from returns.curry import partial
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
@@ -18,11 +14,6 @@ class Card:
     id: int
     winning: set[int]
     have: set[int]
-
-
-pattern = re.compile(
-    r"^Card:\s+(?P<id>\d+)\:\s+(?P<winning>(\d+\s+)+\d)\s+Have:\s\|\s(?P<have>(\d+\s+)+\d)$"
-)
 
 
 def parse_card(line: str) -> Card:
