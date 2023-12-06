@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Iterable, Iterator
 
 import numpy as np
-from returns.curry import partial
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
