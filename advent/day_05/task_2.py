@@ -5,10 +5,9 @@ import logging
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Iterator, List, NamedTuple, TypeAlias
+from typing import Iterable, Iterator, List, TypeAlias
 
 import more_itertools as mit
-import pytest
 from returns.curry import partial
 
 from ..cli_utils import wrap_main
