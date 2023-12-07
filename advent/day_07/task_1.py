@@ -1,13 +1,8 @@
 import itertools as it
 import logging
-import operator
 from collections import Counter
-from dataclasses import dataclass
-from functools import reduce
 from pathlib import Path
-from typing import Iterable, Iterator, NamedTuple, NewType, TypeAlias
-
-import numpy as np
+from typing import Iterable, NamedTuple, TypeAlias
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
@@ -16,9 +11,7 @@ from ..logs import setup_logging
 logger = logging.getLogger(__name__)
 
 
-SYMBOL_TO_CARD_VALUE: dict[str, int] = dict(
-    map(tuple, map(reversed, enumerate("AKQJT98765432", 1)))
-)
+SYMBOL_TO_CARD_VALUE: dict[str, int] = {c: v for v, c in enumerate("AKQJT98765432", 1)}
 CARD_VALUE_TO_SYMBOL: dict[int, str] = {v: k for k, v in SYMBOL_TO_CARD_VALUE.items()}
 
 Cards: TypeAlias = list[int]
@@ -75,7 +68,7 @@ def parse_hands(lines: Iterable[str]) -> Iterable[Hand]:
         yield Hand(cards=cards, bid=bid)
 
 
-def get_hand_score(hand: Hand) -> tuple[int]:
+def get_hand_score(hand: Hand) -> tuple[int, ...]:
     return get_hand_type_value(get_hand_type(hand.cards)), *hand.cards
 
 
