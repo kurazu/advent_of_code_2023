@@ -1,11 +1,6 @@
 import logging
-import operator
-from dataclasses import dataclass
-from functools import reduce
 from pathlib import Path
-from typing import Iterable, Iterator
-
-import numpy as np
+from typing import Iterator
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
@@ -15,7 +10,7 @@ from .task_1 import Race, get_number_of_better_results
 logger = logging.getLogger(__name__)
 
 
-def parse_race(lines: Iterator[str]) -> Iterable[Race]:
+def parse_race(lines: Iterator[str]) -> Race:
     line = next(lines)
     assert line.startswith("Time:")
     time = int("".join(line.removeprefix("Time:").strip().split()))
