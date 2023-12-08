@@ -37,14 +37,18 @@ def parse_map(lines: Iterator[str]) -> dict[Node, tuple[Node, Node]]:
 
 
 def traverse_map(
-    map: dict[Node, tuple[Node, Node]], instructions: list[Direction]
+    map: dict[Node, tuple[Node, Node]],
+    instructions: list[Direction],
+    *,
+    start: Node,
+    ends: set[Node]
 ) -> int:
     steps = 0
-    node: Node = "AAA"
+    node = start
     for direction in it.cycle(instructions):
         node = map[node][direction]
         steps += 1
-        if node == "ZZZ":
+        if node in ends:
             break
     return steps
 
@@ -54,7 +58,7 @@ def main(filename: Path) -> str:
     lines = iter(get_stripped_lines(filename))
     instructions = parse_instructions(lines)
     map = parse_map(lines)
-    steps = traverse_map(map, instructions)
+    steps = traverse_map(map, instructions, start="AAA", ends={"ZZZ"})
     return str(steps)
 
 
