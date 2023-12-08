@@ -1,9 +1,8 @@
 import itertools as it
 import logging
 import re
-from collections import Counter
 from pathlib import Path
-from typing import Iterable, Iterator, Literal, NamedTuple, TypeAlias
+from typing import Iterator, Literal, TypeAlias
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
