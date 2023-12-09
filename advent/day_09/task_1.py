@@ -1,8 +1,6 @@
-import itertools as it
 import logging
-import re
 from pathlib import Path
-from typing import Iterable, Iterator, Literal, TypeAlias
+from typing import TypeAlias
 
 import numpy as np
 from numpy import typing as npt
@@ -21,7 +19,7 @@ def parse_history(line: str) -> History:
 
 
 def find_next_element(history: History) -> int:
-    last_elements: List[int] = [history[-1]]
+    last_elements: list[int] = [history[-1]]
     logger.debug("Finding next element for history: %s", history)
     seq = history
     while np.count_nonzero(seq) > 1:
@@ -29,7 +27,7 @@ def find_next_element(history: History) -> int:
         last_elements.append(seq[-1])
         logger.debug("seq: %s", seq)
     logger.debug("last_elements: %s", last_elements)
-    result = np.sum(last_elements)
+    result: int = np.sum(last_elements)
     logger.info("result: %s", result)
     return result
 
