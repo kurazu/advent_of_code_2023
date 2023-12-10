@@ -98,11 +98,15 @@ class Board:
     def __str__(self) -> str:
         return "\n".join("".join(cell.value for cell in row) for row in self.tiles)
 
+    def __getitem__(self, position: Position) -> Cell:
+        return self.tiles[position.y][position.x]
+
     def find_starting_point(self) -> Position:
         for y in range(self.height):
             for x in range(self.width):
-                if self.tiles[y][x] == Cell.START:
-                    return Position(y, x)
+                position = Position(y, x)
+                if self[position] == Cell.START:
+                    return position
         raise ValueError("No starting point found!")
 
     def maybe_go_east(self, position: Position) -> Position | None:
@@ -111,7 +115,7 @@ class Board:
         if new_position.x >= self.width:
             return None
         # get the cell at the new position
-        cell = self.tiles[new_position.y][new_position.x]
+        cell = self[new_position]
         # check if the cell is approachable from the west
         if cell in self.APPROACHABLE_FROM_WEST:
             return new_position
@@ -124,7 +128,7 @@ class Board:
         if new_position.x < 0:
             return None
         # get the cell at the new position
-        cell = self.tiles[new_position.y][new_position.x]
+        cell = self[new_position]
         # check if the cell is approachable from the east
         if cell in self.APPROACHABLE_FROM_EAST:
             return new_position
@@ -158,19 +162,19 @@ class Board:
             return None
 
     def can_go_east_from(self, position: Position) -> bool:
-        cell = self.tiles[position.y][position.x]
+        cell = self[position]
         return cell in self.CAN_GO_EAST_FROM
 
     def can_go_west_from(self, position: Position) -> bool:
-        cell = self.tiles[position.y][position.x]
+        cell = self[position]
         return cell in self.CAN_GO_WEST_FROM
 
     def can_go_north_from(self, position: Position) -> bool:
-        cell = self.tiles[position.y][position.x]
+        cell = self[position]
         return cell in self.CAN_GO_NORTH_FROM
 
     def can_go_south_from(self, position: Position) -> bool:
-        cell = self.tiles[position.y][position.x]
+        cell = self[position]
         return cell in self.CAN_GO_SOUTH_FROM
 
 
@@ -187,6 +191,7 @@ def _traverse(board: Board, history: list[Position]) -> list[Position]:
     target = history[0]
     previous = history[-2]
     current = history[-1]
+    logger.debug("Current position: %s [%s]", current, board[current].value)
     if current == target:
         logger.debug("Reached target %s with steps %s", target, history)
         return history
@@ -195,7 +200,7 @@ def _traverse(board: Board, history: list[Position]) -> list[Position]:
         and (candidate := board.maybe_go_east(current)) is not None
         and candidate != previous
     ):
-        logger.debug("Going east to %s", candidate)
+        logger.debug("Going east to %s [%s]", candidate, board[candidate].value)
         try:
             return _traverse(board, [*history, candidate])
         except BlindAlleyException:
@@ -206,7 +211,11 @@ def _traverse(board: Board, history: list[Position]) -> list[Position]:
         and (candidate := board.maybe_go_west(current)) is not None
         and candidate != previous
     ):
-        logger.debug("Going west to %s", candidate)
+        logger.debug(
+            "Going west to %s [%s]",
+            candidate,
+            board[candidate].value,
+        )
         try:
             return _traverse(board, [*history, candidate])
         except BlindAlleyException:
@@ -217,7 +226,11 @@ def _traverse(board: Board, history: list[Position]) -> list[Position]:
         and (candidate := board.maybe_go_north(current)) is not None
         and candidate != previous
     ):
-        logger.debug("Going north to %s", candidate)
+        logger.debug(
+            "Going north to %s [%s]",
+            candidate,
+            board[candidate].value,
+        )
         try:
             return _traverse(board, [*history, candidate])
         except BlindAlleyException:
@@ -228,7 +241,11 @@ def _traverse(board: Board, history: list[Position]) -> list[Position]:
         and (candidate := board.maybe_go_south(current)) is not None
         and candidate != previous
     ):
-        logger.debug("Going south to %s", candidate)
+        logger.debug(
+            "Going south to %s [%s]",
+            candidate,
+            board[candidate].value,
+        )
         try:
             return _traverse(board, [*history, candidate])
         except BlindAlleyException:
@@ -245,7 +262,11 @@ class BlindAlleyException(Exception):
 def traverse_board(board: Board, starting_point: Position) -> list[Position]:
     logger.debug("Traversing board from %s", starting_point)
     if (east_point := board.maybe_go_east(starting_point)) is not None:
-        logger.debug("Going east to %s", east_point)
+        logger.debug(
+            "Going east to %s [%s]",
+            east_point,
+            board.tiles[east_point.y][east_point.x].value,
+        )
         try:
             return _traverse(board, [starting_point, east_point])
         except BlindAlleyException:
@@ -255,7 +276,11 @@ def traverse_board(board: Board, starting_point: Position) -> list[Position]:
         logger.debug("Can't go east from %s", starting_point)
 
     if (west_point := board.maybe_go_west(starting_point)) is not None:
-        logger.debug("Going west to %s", west_point)
+        logger.debug(
+            "Going west to %s [%s]",
+            west_point,
+            board.tiles[west_point.y][west_point.x].value,
+        )
         try:
             return _traverse(board, [starting_point, west_point])
         except BlindAlleyException:
@@ -265,7 +290,11 @@ def traverse_board(board: Board, starting_point: Position) -> list[Position]:
         logger.debug("Can't go west from %s", starting_point)
 
     if (north_point := board.maybe_go_north(starting_point)) is not None:
-        logger.debug("Going north to %s", north_point)
+        logger.debug(
+            "Going north to %s [%s]",
+            north_point,
+            board.tiles[north_point.y][north_point.x].value,
+        )
         try:
             return _traverse(board, [starting_point, north_point])
         except BlindAlleyException:
@@ -275,7 +304,11 @@ def traverse_board(board: Board, starting_point: Position) -> list[Position]:
         logger.debug("Can't go north from %s", starting_point)
 
     if (south_point := board.maybe_go_south(starting_point)) is not None:
-        logger.debug("Going south to %s", south_point)
+        logger.debug(
+            "Going south to %s [%s]",
+            south_point,
+            board.tiles[south_point.y][south_point.x].value,
+        )
         try:
             return _traverse(board, [starting_point, south_point])
         except BlindAlleyException:
