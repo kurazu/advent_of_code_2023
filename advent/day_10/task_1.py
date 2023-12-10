@@ -4,12 +4,9 @@ import logging
 import math
 import sys
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 from pathlib import Path
-from typing import ClassVar, Iterable, NamedTuple, TypeAlias
-
-import numpy as np
-from numpy import typing as npt
+from typing import Iterable, NamedTuple
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
