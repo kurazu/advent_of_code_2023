@@ -68,26 +68,23 @@ class Board:
         Cell.EAST_WEST,
         Cell.NORTH_EAST,
         Cell.SOUTH_EAST,
-        Cell.START,
     }
     CAN_GO_WEST_FROM: ClassVar[set[Cell]] = {
         Cell.EAST_WEST,
         Cell.NORTH_WEST,
         Cell.SOUTH_WEST,
-        Cell.START,
     }
     CAN_GO_NORTH_FROM: ClassVar[set[Cell]] = {
         Cell.NORTH_SOUTH,
         Cell.NORTH_EAST,
         Cell.NORTH_WEST,
-        Cell.START,
     }
     CAN_GO_SOUTH_FROM: ClassVar[set[Cell]] = {
         Cell.NORTH_SOUTH,
         Cell.SOUTH_EAST,
         Cell.SOUTH_WEST,
-        Cell.START,
     }
+
     tiles: list[list[Cell]]
 
     @property
