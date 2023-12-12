@@ -3,7 +3,6 @@ from __future__ import annotations
 import itertools as it
 import logging
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 from numpy import typing as npt
