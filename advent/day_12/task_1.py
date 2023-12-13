@@ -4,7 +4,7 @@ import itertools as it
 import logging
 import operator
 from pathlib import Path
-from typing import Iterable, List, Literal, Tuple, TypeAlias
+from typing import Iterable, List, Tuple, TypeAlias
 
 import numpy as np
 from numpy import typing as npt
