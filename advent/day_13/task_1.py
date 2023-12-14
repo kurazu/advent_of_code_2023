@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import itertools as it
 import logging
-import operator
 from pathlib import Path
-from typing import Iterable, List, Tuple, TypeAlias
+from typing import Iterable, List, TypeAlias
 
 import numpy as np
 from numpy import typing as npt
-from returns.curry import partial
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
