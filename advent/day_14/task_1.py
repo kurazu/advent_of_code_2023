@@ -62,6 +62,14 @@ def drop(board: BoardType) -> None:
             board[candidate_row + 1, col] = MOVING
 
 
+def get_load(board: BoardType) -> int:
+    height, width = board.shape
+    weights = np.arange(height, 0, -1)[:, None]
+    loads = (board == MOVING) * weights
+    sum_of_load: int = np.sum(loads)
+    return sum_of_load
+
+
 @wrap_main
 def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
