@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Iterable, List, TypeAlias
 
 import numpy as np
-from numpy import typing as npt
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
