@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TypeAlias
+from typing import Iterable, TypeAlias
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
@@ -50,6 +50,12 @@ def print_boxes(boxes: list[BoxType]) -> None:
             logger.debug("\tBox %d: %s", i, box)
 
 
+def calc(boxes: list[BoxType]) -> Iterable[int]:
+    for box_no, box in enumerate(boxes, 1):
+        for lens_no, (label, focal) in enumerate(box, 1):
+            yield box_no * lens_no * focal
+
+
 @wrap_main
 def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
@@ -60,9 +66,10 @@ def main(filename: Path) -> str:
         logger.debug("Executing %s", part)
         execute(boxes, part)
         print_boxes(boxes)
-    return ""
+    focusing_powers = calc(boxes)
+    return str(sum(focusing_powers))
 
 
 if __name__ == "__main__":
-    setup_logging(logging.DEBUG)
+    setup_logging(logging.INFO)
     main()
