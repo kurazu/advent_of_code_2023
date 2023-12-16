@@ -108,7 +108,6 @@ def main(filename: Path) -> str:
             rays=rays,
             memory=memory,
         )
-        logger.debug("Board:\n%s", visualize_energized(energized))
 
     logger.debug("Board:\n%s", visualize_energized(energized))
     return str(np.count_nonzero(energized))
