@@ -37,23 +37,44 @@ def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
     board = parse(lines)
     logger.info("Board:\n%s", visualize_board(board))
-    memory: dict[str, int] = {
-        visualize_board(board): 0,
-    }
+    memory: list[str] = [
+        visualize_board(board),
+    ]
+    values: list[BoardType] = [
+        board.copy(),
+    ]
+    # memory: dict[str, int] = {
+    #     visualize_board(board): 0,
+    # }
     round = 0
     while True:
         cycle(board)
         round += 1
         key = visualize_board(board)
-        if key in memory:
-            logger.info("Found cycle at round %d", round)
+        try:
+            index = memory.index(key)
+        except ValueError:
+            memory.append(key)
+            values.append(board.copy())
+            continue
+        else:
+            cycle_offset = index
+            cycle_len = round - index
+            logger.info(
+                "Found cycle len %d at round %d to round %d",
+                cycle_len,
+                round,
+                cycle_offset,
+            )
             break
-        memory[key] = round
-        if round % 100 == 0:
-            logger.info("Round %d", round)
+
+    target_rounds = 1000000000
+    target_rounds -= cycle_offset
+    target_rounds %= cycle_len
+    state = values[cycle_offset + target_rounds]
 
     # logger.info("Cycle:\n%s", visualize_board(board))
-    load = get_load(board)
+    load = get_load(state)
     return str(load)
 
 
