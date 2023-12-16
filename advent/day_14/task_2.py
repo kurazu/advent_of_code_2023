@@ -2,11 +2,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Iterable
-
-import numpy as np
-from numpy import typing as npt
-from typing_extensions import TypeAlias
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
@@ -43,9 +38,6 @@ def main(filename: Path) -> str:
     values: list[BoardType] = [
         board.copy(),
     ]
-    # memory: dict[str, int] = {
-    #     visualize_board(board): 0,
-    # }
     round = 0
     while True:
         cycle(board)
