@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from collections import deque
 from pathlib import Path
-from typing import NamedTuple
 
 import numpy as np
 from numpy import typing as npt
@@ -11,16 +10,7 @@ from numpy import typing as npt
 from ..cli_utils import wrap_main
 from ..io_utils import parse_board
 from ..logs import setup_logging
-from .task_1 import (
-    CHAR_MAP,
-    DOWN,
-    LEFT,
-    RIGHT,
-    UP,
-    Point,
-    light_up,
-    visualize_energized,
-)
+from .task_1 import CHAR_MAP, DOWN, LEFT, RIGHT, UP, Point, light_up
 
 logger = logging.getLogger(__name__)
 
