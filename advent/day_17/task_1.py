@@ -35,14 +35,20 @@ def build_graph(board: npt.NDArray[np.uint8]) -> GraphType:
                     # consider vertical moves
                     current_node = Node(row, col, False)
                     target_node = Node(target_row, col, True)
-                    cost = board[min(row, target_row) : max(row, target_row), col].sum()
-                    graph[current_node][target_node] = cost
+                    if offset < 0:
+                        cost = board[target_row:row, col].sum(dtype=np.uint32)
+                    else:
+                        cost = board[row + 1 : target_row + 1, col].sum(dtype=np.uint32)
+                    graph[current_node][target_node] = cost.tolist()
                 if 0 <= (target_col := col + offset) < width:
                     # consider horizontal moves
                     current_node = Node(row, col, True)
                     target_node = Node(row, target_col, False)
-                    cost = board[row, min(col, target_col) : max(col, target_col)].sum()
-                    graph[current_node][target_node] = cost
+                    if offset < 0:
+                        cost = board[row, target_col:col].sum(dtype=np.uint32)
+                    else:
+                        cost = board[row, col + 1 : target_col + 1].sum(dtype=np.uint32)
+                    graph[current_node][target_node] = cost.tolist()
 
     return graph
 
