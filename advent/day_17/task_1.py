@@ -23,14 +23,14 @@ OFFSETS = [-3, -2, -1, 1, 2, 3]
 GraphType: TypeAlias = dict[Node, dict[Node, int]]
 
 
-def build_graph(board: npt.NDArray[np.uint8]) -> GraphType:
+def build_graph(board: npt.NDArray[np.uint8], offsets: list[int]) -> GraphType:
     # undirected graph
     # starting_node -> ending_node -> distance
     graph: GraphType = defaultdict(dict)
     height, width = board.shape
     for row in range(height):
         for col in range(width):
-            for offset in OFFSETS:
+            for offset in offsets:
                 if 0 <= (target_row := row + offset) < height:
                     # consider vertical moves
                     current_node = Node(row, col, False)
@@ -95,7 +95,7 @@ def main(filename: Path) -> str:
     board = parse_board(filename, {c: int(c) for c in "123456789"})
     height, width = board.shape
     logger.debug("Board:\n%s", board)
-    graph = build_graph(board)
+    graph = build_graph(board, OFFSETS)
     ends = {Node(height - 1, width - 1, False), Node(height - 1, width - 1, True)}
     cost_1 = find_path(
         graph=graph, start=Node(0, 0, False), ends=ends, height=height, width=width
