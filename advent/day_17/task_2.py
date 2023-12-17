@@ -1,10 +1,5 @@
 import logging
-from collections import defaultdict
 from pathlib import Path
-from typing import NamedTuple, TypeAlias
-
-import numpy as np
-from numpy import typing as npt
 
 from ..cli_utils import wrap_main
 from ..io_utils import parse_board
