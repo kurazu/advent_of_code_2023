@@ -3,7 +3,7 @@ import operator
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable, Literal, Protocol, TypedDict, cast
+from typing import Callable, Iterable, Literal, Protocol, TypedDict, cast
 
 from returns.curry import partial
 
