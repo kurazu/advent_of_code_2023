@@ -60,14 +60,18 @@ def process(
         instruction: Instruction, item: RangeItem
     ) -> Iterable[RangeItem]:
         if isinstance(instruction, Accept):
+            logger.info("Accepting %s", item)
             yield item
         elif isinstance(instruction, Reject):
+            logger.debug("Rejecting %s", item)
             return
         else:
             assert isinstance(instruction, Redirect)
-            yield from _process(instruction.workflow, starting_item)
+            logger.debug("Redirecting %s to %s", item, instruction.workflow)
+            yield from _process(instruction.workflow, item)
 
     def _process(current_workflow: str, item: RangeItem) -> Iterable[RangeItem]:
+        logger.debug("Processing %s through workflow %s", item, current_workflow)
         for instruction in workflows[current_workflow]:
             if isinstance(instruction, Condition):
                 passing_item, failing_item = split_item(item, instruction)
