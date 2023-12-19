@@ -1,11 +1,8 @@
 import logging
 import operator
-import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Literal, Protocol, TypedDict, cast
-
-from returns.curry import partial
+from typing import Iterable, TypedDict
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
