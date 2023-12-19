@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Literal, Protocol, TypedDict, cast
 
+from returns.curry import partial
+
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
 from ..logs import setup_logging
@@ -68,7 +70,7 @@ class Condition:
 def parse_static_instruction(part: str) -> Instruction:
     if part == "A":
         return Accept()
-    elif part == "B":
+    elif part == "R":
         return Reject()
     else:
         return Redirect(part)
@@ -124,18 +126,64 @@ def parse_item(line: str) -> Item:
     return Item(x=x, m=m, a=a, s=s)
 
 
+def process(workflows: dict[str, list[Instruction]], item: Item) -> bool:
+    current_workflow = "in"
+    while True:
+        for instruction in workflows[current_workflow]:
+            result = instruction(item)
+            if isinstance(result, bool):
+                if result:
+                    logger.debug(
+                        "Accepting item %s in workflow %r", item, current_workflow
+                    )
+                else:
+                    logger.debug(
+                        "Rejecting item %s in workflow %r", item, current_workflow
+                    )
+                return result
+            elif isinstance(result, str):
+                logger.debug(
+                    "Redirecting item %s to workflow %r from workflow %r",
+                    item,
+                    result,
+                    current_workflow,
+                )
+                current_workflow = result
+                break
+            else:
+                assert result is None
+                logger.debug(
+                    "Instruction %s does not apply to item %s in workflow %r",
+                    instruction,
+                    item,
+                    current_workflow,
+                )
+                continue
+        else:
+            logger.error(
+                "No instruction applied to item %s in workflow %r",
+                item,
+                current_workflow,
+            )
+            raise AssertionError()
+
+
+def get_rating(item: Item) -> int:
+    return item["x"] + item["m"] + item["a"] + item["s"]
+
+
 @wrap_main
 def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
-    workflows = list(parse_workflows(lines))
-    items = list(map(parse_item, lines))
-    for item in items:
-        logger.debug("Item: %s", item)
-    for workflow in workflows:
-        logger.debug("Workflow: %s", workflow)
-    return ""
+    workflows = {
+        workflow.name: workflow.instructions for workflow in parse_workflows(lines)
+    }
+    items = map(parse_item, lines)
+    accepted_items = filter(partial(process, workflows), items)
+    ratings = map(get_rating, accepted_items)
+    return str(sum(ratings))
 
 
 if __name__ == "__main__":
-    setup_logging()
+    setup_logging(logging.INFO)
     main()
