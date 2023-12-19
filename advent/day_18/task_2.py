@@ -1,15 +1,10 @@
 from __future__ import annotations
 
 import logging
-from enum import Enum
 from pathlib import Path
-from typing import Iterable, List, NamedTuple
+from typing import Iterable, List
 
-import cv2
-import numpy as np
 import shapely
-import sympy
-from numpy import typing as npt
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
