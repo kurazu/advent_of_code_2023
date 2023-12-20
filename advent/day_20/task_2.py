@@ -22,11 +22,11 @@ def press(modules: dict[str, Module], name: str, value: bool) -> None:
         source, target, value = queue.popleft()
         if target == "rx" and not value:
             raise RxActivated()
-        logger.debug("Processing %s --- %s --> %s", source, value, target)
+        # logger.debug("Processing %s --- %s --> %s", source, value, target)
         target_module = modules[target]
         for trigger_name, trigger_value in target_module(source, value):
             logger.debug(
-                "\tTriggering %s --- %s --> %s",
+                # "\tTriggering %s --- %s --> %s",
                 target,
                 trigger_value,
                 trigger_name,
@@ -48,7 +48,7 @@ def main(filename: Path) -> str:
             return str(i)
         else:
             i += 1
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 logger.info("Iteration %d", i)
 
 
