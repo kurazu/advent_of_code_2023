@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import itertools as it
 import logging
-import operator
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -136,9 +134,9 @@ def main(filename: Path) -> str:
     logger.debug("Modules:\n%s", modules)
     high_count, low_count = 0, 0
     for _ in range(1000):
-        h, l = press(modules, "broadcaster", False)
-        high_count += h
-        low_count += l
+        high, low = press(modules, "broadcaster", False)
+        high_count += high
+        low_count += low
     return str(high_count * low_count)
 
 
