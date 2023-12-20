@@ -1,5 +1,10 @@
+from __future__ import annotations
+
+import itertools as it
 import logging
-from dataclasses import dataclass
+import operator
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Iterable
@@ -19,49 +24,122 @@ class ModuleType(Enum):
 
 @dataclass
 class Module:
-    name: str
-    module_type: ModuleType
     connections: set[str]
 
+    def setup(self, incoming: set[str]) -> None:
+        pass
 
-def parse_module(line: str) -> Module:
+    def __call__(self, source: str, value: bool) -> Iterable[tuple[str, bool]]:
+        raise NotImplementedError()
+
+
+@dataclass
+class PlainModule(Module):
+    def __call__(self, source: str, value: bool) -> Iterable[tuple[str, bool]]:
+        for connection in self.connections:
+            yield connection, value
+
+
+@dataclass
+class FlipFlopModule(Module):
+    state: bool = field(default=False, init=False)
+
+    def __call__(self, source: str, value: bool) -> Iterable[tuple[str, bool]]:
+        if value:
+            pass  # nothing happens on high pulse
+        else:
+            self.state = not self.state
+            for connection in self.connections:
+                yield connection, self.state
+
+
+@dataclass
+class ConjunctionModule(Module):
+    memory: dict[str, bool] = field(init=False, default_factory=dict)
+
+    def setup(self, incoming: set[str]) -> None:
+        for name in incoming:
+            self.memory[name] = False
+
+    def __call__(self, source: str, value: bool) -> Iterable[tuple[str, bool]]:
+        self.memory[source] = value
+        new_value = not all(self.memory.values())
+
+        for connection in self.connections:
+            yield connection, new_value
+
+
+def parse_module(line: str) -> tuple[str, Module]:
     name_part, connections_part = line.split(" -> ")
-    module_type: ModuleType
-    if name_part.startswith("%"):
-        module_type = ModuleType.FLIP_FLOP
-        name = name_part[1:]
-    elif name_part.startswith("&"):
-        module_type = ModuleType.CONJUNCTION
-        name = name_part[1:]
-    else:
-        module_type = ModuleType.PLAIN
-        name = name_part
     connections = set(connections_part.split(", "))
-    return Module(name=name, module_type=module_type, connections=connections)
+    name: str
+    module: Module
+    if name_part.startswith("%"):
+        name = name_part[1:]
+        module = FlipFlopModule(connections=connections)
+    elif name_part.startswith("&"):
+        name = name_part[1:]
+        module = ConjunctionModule(connections=connections)
+    else:
+        name = name_part
+        module = PlainModule(connections=connections)
+    return name, module
 
 
 def parse_modules(lines: Iterable[str]) -> dict[str, Module]:
-    modules = {module.name: module for module in map(parse_module, lines)}
-    additional_modules = {}
+    modules = dict(map(parse_module, lines))
+    additional_modules: dict[str, Module] = {}
     for module in modules.values():
         for connection in module.connections:
             if connection not in modules:
                 logger.warning("Adding additional module %s", connection)
-                additional_modules[connection] = Module(
-                    name=connection, module_type=ModuleType.PLAIN, connections=set()
-                )
+                additional_modules[connection] = PlainModule(connections=set())
     return {
         **modules,
         **additional_modules,
     }
 
 
+def press(modules: dict[str, Module], name: str, value: bool) -> tuple[int, int]:
+    queue: deque[tuple[str, str, bool]] = deque([("", name, value)])
+    counter: dict[bool, int] = defaultdict(int)
+    while queue:
+        source, target, value = queue.popleft()
+        counter[value] += 1
+        logger.debug("Processing %s --- %s --> %s", source, value, target)
+        target_module = modules[target]
+        for trigger_name, trigger_value in target_module(source, value):
+            logger.debug(
+                "\tTriggering %s --- %s --> %s",
+                target,
+                trigger_value,
+                trigger_name,
+            )
+            queue.append((target, trigger_name, trigger_value))
+    return counter[True], counter[False]
+
+
+def setup_modules(modules: dict[str, Module]) -> None:
+    incoming: dict[str, set[str]] = defaultdict(set)
+    for name, module in modules.items():
+        for connection in module.connections:
+            incoming[connection].add(name)
+    for name, module in modules.items():
+        module.setup(incoming[name])
+
+
 @wrap_main
 def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
     modules = parse_modules(lines)
+    setup_modules(modules)
     logger.debug("Modules:\n%s", modules)
-    return ""
+    high_count, low_count = 0, 0
+    for _ in range(1000):
+        h, l = press(modules, "broadcaster", False)
+        high_count += h
+        low_count += l
+    return str(high_count * low_count)
 
 
 if __name__ == "__main__":
