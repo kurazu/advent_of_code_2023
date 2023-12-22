@@ -55,8 +55,9 @@ def get_neighbours(board: npt.NDArray[np.uint8], pos: Position) -> Iterable[Posi
 
 def dijkstra(
     board: npt.NDArray[np.uint8], start: Position, max_distance: int
-) -> npt.NDArray[np.float32]:
-    distances = np.full(board.shape, np.inf, dtype=np.float32)
+) -> npt.NDArray[np.uint32]:
+    almost_infinity = np.iinfo(np.uint32).max
+    distances = np.full(board.shape, almost_infinity, dtype=np.uint32)
     distances[start] = 0
     queue = deque([start])
 

@@ -21,6 +21,11 @@ jupyter = "^1.0.0"
 notebook = "^7.0.6"
 shapely = "^2.0.2"
 sympy = "^1.12"
+torch = {version = "^2.1.2+cpu", source = "pytorch"}
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
