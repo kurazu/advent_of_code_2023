@@ -62,6 +62,8 @@ def dijkstra(
 
     while queue:
         current = queue.popleft()
+        if distances[current] >= max_distance:
+            break
         neighbours = get_neighbours(board, current)
         for neighbour in neighbours:
             new_distance = distances[current] + 1
@@ -83,8 +85,10 @@ def main(filename: Path) -> str:
     max_distance = 64
     distances = dijkstra(board, start_tuple, max_distance=max_distance)
     logger.debug("Distances:\n%s", distances)
-    possible_plots = (distances <= max_distance) & (distances % 2 == 0)
-    logger.debug("Possible plots:\n%s", possible_plots)
+    possible_plots = distances <= max_distance
+    if max_distance % 2 == 0:
+        possible_plots &= distances % 2 == 0
+    logger.debug("Possible plots:\n%s", possible_plots.astype(np.uint8))
     number_of_plots = np.count_nonzero(possible_plots)
     return str(number_of_plots)
 
