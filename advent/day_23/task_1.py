@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterable, TypeAlias
 
 import numpy as np
+from contexttimer import Timer
 from matplotlib import colors
 from matplotlib import pyplot as plt
 from numpy import typing as npt
@@ -33,6 +34,8 @@ CHAR_MAP = {
 INVERSE_CHAR_MAP = {v: k for k, v in CHAR_MAP.items()}
 NodeType: TypeAlias = tuple[int, int]
 
+BoardType: TypeAlias = npt.NDArray[np.uint8]
+PathType: TypeAlias = frozenset[NodeType]
 DistanceType: TypeAlias = int
 GraphType: TypeAlias = dict[NodeType, dict[NodeType, DistanceType]]
 
@@ -45,7 +48,7 @@ MOVES: list[tuple[NodeType, int]] = [
 
 
 def get_neighbors(
-    board: npt.NDArray[np.uint8], node: NodeType
+    board: BoardType, node: NodeType
 ) -> Iterable[tuple[NodeType, DistanceType]]:
     height, width = board.shape
     y, x = node
@@ -62,7 +65,7 @@ def get_neighbors(
             continue  # move is blocked by a wall
 
 
-def build_graph(board: npt.NDArray[np.uint8], start_node: NodeType) -> GraphType:
+def build_graph(board: BoardType, start_node: NodeType) -> GraphType:
     graph: GraphType = defaultdict(dict)
     visited: set[NodeType] = set()
     queue: deque[NodeType] = deque([start_node])
@@ -78,9 +81,7 @@ def build_graph(board: npt.NDArray[np.uint8], start_node: NodeType) -> GraphType
     return graph
 
 
-def visualize_path(
-    board: npt.NDArray[np.uint8], path: frozenset[NodeType], distance: DistanceType
-) -> None:
+def visualize_path(board: BoardType, path: PathType, distance: DistanceType) -> None:
     cmap = colors.ListedColormap(
         ["yellow", "brown", "green", "green", "green", "green"]
     )
@@ -114,12 +115,12 @@ ALMOST_INFINITY = 2**32
 
 def dfs(
     graph: GraphType, start_node: NodeType, end_node: NodeType
-) -> Iterable[tuple[frozenset[NodeType], DistanceType]]:
+) -> Iterable[tuple[PathType, DistanceType]]:
     def _dfs(
-        path: frozenset[NodeType],
+        path: PathType,
         current_node: NodeType,
         current_distance: DistanceType,
-    ) -> Iterable[tuple[frozenset[NodeType], DistanceType]]:
+    ) -> Iterable[tuple[PathType, DistanceType]]:
         if current_node == end_node:
             yield path, current_distance
         else:
@@ -136,6 +137,22 @@ def dfs(
     yield from _dfs(frozenset({start_node}), start_node, 0)
 
 
+def find_best_path(
+    graph: GraphType, start_node: NodeType, end_node: NodeType
+) -> tuple[PathType, DistanceType]:
+    with Timer() as timer:
+        best_distance = -ALMOST_INFINITY
+        best_path: PathType = frozenset()
+        for path, distance in dfs(graph, start_node, end_node):
+            logger.info("Found path of length %d", distance)
+            if best_distance < distance:
+                best_distance = distance
+                best_path = path
+        assert best_path
+    logger.info("Found best path of length %d in %.2fs", best_distance, timer.elapsed)
+    return best_path, best_distance
+
+
 @wrap_main
 def main(filename: Path) -> str:
     board = parse_board(filename, CHAR_MAP)
@@ -148,13 +165,7 @@ def main(filename: Path) -> str:
     assert start_node in graph
     assert end_node in graph
 
-    best_distance = -ALMOST_INFINITY
-    best_path: set[NodeType] = set()
-    for path, distance in dfs(graph, start_node, end_node):
-        logger.info("Found path of length %d", distance)
-        if best_distance < distance:
-            best_distance = distance
-            best_path = path
+    best_path, best_distance = find_best_path(graph, start_node, end_node)
 
     visualize_path(board, best_path, best_distance)
 

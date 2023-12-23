@@ -8,7 +8,15 @@ from contexttimer import Timer
 from ..cli_utils import wrap_main
 from ..io_utils import parse_board
 from ..logs import setup_logging
-from .task_1 import CHAR_MAP, EMPTY, WALL, NodeType, build_graph, dfs, visualize_path
+from .task_1 import (
+    CHAR_MAP,
+    EMPTY,
+    WALL,
+    NodeType,
+    build_graph,
+    find_best_path,
+    visualize_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +34,7 @@ def main(filename: Path) -> str:
     assert start_node in graph
     assert end_node in graph
 
-    with Timer() as timer:
-        almost_infinity = 2**32
-        best_distance = -almost_infinity
-        best_path: frozenset[NodeType] = frozenset()
-        for path, distance in dfs(graph, start_node, end_node):
-            logger.info("Found path of length %d", distance)
-            if best_distance < distance:
-                best_distance = distance
-                best_path = path
-
-    logger.info("Found best path of length %d in %.2fs", best_distance, timer.elapsed)
+    best_path, best_distance = find_best_path(graph, start_node, end_node)
 
     visualize_path(board, best_path, best_distance)
 
