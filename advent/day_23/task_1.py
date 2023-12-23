@@ -173,8 +173,6 @@ def main(filename: Path) -> str:
 
 
 if __name__ == "__main__":
-    sys.setrecursionlimit(
-        10000
-    )  # Set the recursion limit to 10000 or any desired value
+    sys.setrecursionlimit(10000)
     setup_logging(logging.DEBUG)
     main()

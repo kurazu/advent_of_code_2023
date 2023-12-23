@@ -23,6 +23,7 @@ shapely = "^2.0.2"
 sympy = "^1.12"
 torch = {version = "^2.1.2+cpu", source = "pytorch"}
 contexttimer = "^0.3.3"
+matplotlib-stubs = "^0.2.0"
 
 [[tool.poetry.source]]
 name = "pytorch"

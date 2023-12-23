@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from contexttimer import Timer
 
 from ..cli_utils import wrap_main
 from ..io_utils import parse_board
@@ -42,8 +41,6 @@ def main(filename: Path) -> str:
 
 
 if __name__ == "__main__":
-    sys.setrecursionlimit(
-        10000
-    )  # Set the recursion limit to 10000 or any desired value
+    sys.setrecursionlimit(10000)
     setup_logging(logging.DEBUG)
     main()
