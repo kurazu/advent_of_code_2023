@@ -500,6 +500,17 @@ traitlets = ">=4"
 test = ["pytest"]
 
 [[package]]
+name = "contexttimer"
+version = "0.3.3"
+description = "A timer context manager measuring the clock wall time of the code block it contains."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "contexttimer-0.3.3.tar.gz", hash = "sha256:35a1efd389af3f1ca509f33ff23e17d98b66c8fde5ba2a4eb8a8b7fa456598a5"},
+]
+
+[[package]]
 name = "contourpy"
 version = "1.0.6"
 description = "Python library for calculating contours of 2D quadrilateral grids"
@@ -3074,4 +3085,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5429ee5e9bbcb2f42e85238f32c4fbce8b98cb7943d5783b4e3f9f223e0f93f8"
+content-hash = "92f90ceda2435d863e2ff474762a5cb538d53bf200caed80be915ffc7faf285f"

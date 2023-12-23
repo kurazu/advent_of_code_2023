@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from contexttimer import Timer
 
 from ..cli_utils import wrap_main
 from ..io_utils import parse_board
@@ -25,14 +26,17 @@ def main(filename: Path) -> str:
     assert start_node in graph
     assert end_node in graph
 
-    almost_infinity = 2**32
-    best_distance = -almost_infinity
-    best_path: frozenset[NodeType] = []
-    for path, distance in dfs(graph, start_node, end_node):
-        logger.info("Found path of length %d", distance)
-        if best_distance < distance:
-            best_distance = distance
-            best_path = path
+    with Timer() as timer:
+        almost_infinity = 2**32
+        best_distance = -almost_infinity
+        best_path: frozenset[NodeType] = frozenset()
+        for path, distance in dfs(graph, start_node, end_node):
+            logger.info("Found path of length %d", distance)
+            if best_distance < distance:
+                best_distance = distance
+                best_path = path
+
+    logger.info("Found best path of length %d in %.2fs", best_distance, timer.elapsed)
 
     visualize_path(board, best_path, best_distance)
 
