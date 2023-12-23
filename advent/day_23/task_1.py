@@ -111,11 +111,10 @@ def visualize_path(
 
 def dfs(
     graph: GraphType, start_node: NodeType, end_node: NodeType
-) -> Iterable[tuple[list[NodeType], DistanceType]]:
+) -> Iterable[tuple[set[NodeType], DistanceType]]:
     def _dfs(
-        path: list[NodeType], current_distance: DistanceType
-    ) -> Iterable[tuple[list[NodeType], DistanceType]]:
-        current_node = path[-1]
+        path: set[NodeType], current_node: NodeType, current_distance: DistanceType
+    ) -> Iterable[tuple[set[NodeType], DistanceType]]:
         if current_node == end_node:
             yield path, current_distance
         else:
@@ -123,9 +122,11 @@ def dfs(
                 if neighbor in path:
                     continue
                 else:
-                    yield from _dfs(path + [neighbor], current_distance + distance)
+                    yield from _dfs(
+                        path | {neighbor}, neighbor, current_distance + distance
+                    )
 
-    yield from _dfs([start_node], 0)
+    yield from _dfs({start_node}, start_node, 0)
 
 
 def format_path(board: npt.NDArray[np.uint8], path: list[NodeType]) -> str:
@@ -155,17 +156,18 @@ def main(filename: Path) -> str:
     assert start_node in graph
     assert end_node in graph
 
-    visualize = False
-
-    max_path_length = float("-inf")
+    almost_infinity = 2**32
+    best_distance = -almost_infinity
+    best_path: list[NodeType] = []
     for path, distance in dfs(graph, start_node, end_node):
         logger.info("Found path of length %d", distance)
-        if max_path_length < distance:
-            max_path_length = distance
-        if visualize:
-            visualize_path(board, path, distance)
+        if best_distance < distance:
+            best_distance = distance
+            best_path = path
 
-    return str(max_path_length)
+    visualize_path(board, best_path, best_distance)
+
+    return str(best_distance)
 
 
 if __name__ == "__main__":
