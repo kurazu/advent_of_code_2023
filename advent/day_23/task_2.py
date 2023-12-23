@@ -67,9 +67,9 @@ def main(filename: Path) -> str:
     start_node: NodeType = (0, 1)
     end_node: NodeType = (height - 1, width - 2)
     graph = build_graph(board, start_node)
-    logger.debug("Graph has %d vertices", sum(map(len, graph.values())))
+    logger.info("Graph has %d vertices", sum(map(len, graph.values())))
     simplify_graph(graph)
-    logger.debug("Simplified graph has %d vertices", sum(map(len, graph.values())))
+    logger.info("Simplified graph has %d vertices", sum(map(len, graph.values())))
     assert start_node in graph
     assert end_node in graph
 

@@ -2,11 +2,11 @@ import logging
 import sys
 from collections import defaultdict, deque
 from pathlib import Path
-from typing import Iterable, TypeAlias
+from typing import Any, Iterable, TypeAlias
 
 import numpy as np
 from contexttimer import Timer
-from matplotlib import colors
+from matplotlib import cm, colors
 from matplotlib import pyplot as plt
 from numpy import typing as npt
 
@@ -35,7 +35,7 @@ INVERSE_CHAR_MAP = {v: k for k, v in CHAR_MAP.items()}
 NodeType: TypeAlias = tuple[int, int]
 
 BoardType: TypeAlias = npt.NDArray[np.uint8]
-PathType: TypeAlias = frozenset[NodeType]
+PathType: TypeAlias = list[NodeType]
 DistanceType: TypeAlias = int
 GraphType: TypeAlias = dict[NodeType, dict[NodeType, DistanceType]]
 
@@ -91,18 +91,21 @@ def visualize_path(board: BoardType, path: PathType, distance: DistanceType) -> 
     fig, ax = plt.subplots()
     ax.imshow(board, cmap=cmap, norm=norm)
 
-    for y in range(board.shape[0]):
-        for x in range(board.shape[1]):
-            cell = board[y, x]
-            if cell in INVERSE_CHAR_MAP:
-                char = INVERSE_CHAR_MAP[cell]
-                ax.text(x, y, char, ha="center", va="center")
+    # for y in range(board.shape[0]):
+    #     for x in range(board.shape[1]):
+    #         cell = board[y, x]
+    #         if cell in INVERSE_CHAR_MAP:
+    #             char = INVERSE_CHAR_MAP[cell]
+    #             ax.text(x, y, char, ha="center", va="center")
 
-    path_board = np.zeros_like(board)
-    for node in path:
+    path_board = np.zeros_like(board, dtype=np.uint32)
+    for i, node in enumerate(path, 1):
         y, x = node
-        path_board[y, x] = 1
-    cmap = colors.ListedColormap([(0, 0, 0, 0), (1, 0, 0, 0.5)])  # type: ignore
+        path_board[y, x] = i
+        # ax.text(x, y, str(i), ha="center", va="center")
+    cmap: Any
+    cmap = cm.get_cmap("Blues", len(path))
+    cmap = colors.ListedColormap([(0, 0, 0, 0)] + [cmap(i) for i in range(len(path))])
     ax.imshow(path_board, cmap=cmap)
 
     ax.set_title(f"Path length {distance}")
@@ -116,25 +119,66 @@ ALMOST_INFINITY = 2**32
 def dfs(
     graph: GraphType, start_node: NodeType, end_node: NodeType
 ) -> Iterable[tuple[PathType, DistanceType]]:
+    # cache - current path, current_node -> best path, best distance
+    cache: dict[
+        tuple[tuple[NodeType, ...], NodeType], tuple[PathType, DistanceType] | None
+    ] = {}
+    cache_hits: int = 0
+    cache_misses: int = 0
+
+    def maybe_log_cache_stats() -> None:
+        if (cache_hits + cache_misses) % 10000 == 0:
+            logger.debug(
+                "Cache stats: hits=%d, misses=%d, hit ratio=%.2f",
+                cache_hits,
+                cache_misses,
+                cache_hits / (cache_hits + cache_misses),
+            )
+
     def _dfs(
         path: PathType,
         current_node: NodeType,
         current_distance: DistanceType,
     ) -> Iterable[tuple[PathType, DistanceType]]:
+        nonlocal cache_hits, cache_misses
         if current_node == end_node:
             yield path, current_distance
-        else:
-            for neighbor, distance in graph[current_node].items():
-                if neighbor in path:
-                    continue
-                else:
-                    yield from _dfs(
-                        frozenset(path | {neighbor}),
-                        neighbor,
-                        current_distance + distance,
-                    )
+            return
 
-    yield from _dfs(frozenset({start_node}), start_node, 0)
+        cache_key = (tuple(path), current_node)
+        if cache_key in cache:
+            cache_hits += 1
+            maybe_log_cache_stats()
+
+            cached_item = cache[cache_key]
+            if cached_item is None:
+                return
+            else:
+                yield cached_item
+                return
+
+        cache_misses += 1
+        maybe_log_cache_stats()
+        best_path: PathType = []
+        best_distance: DistanceType = -ALMOST_INFINITY
+        neighbours_not_in_path = set(graph[current_node]) - set(path)
+        for neighbor in neighbours_not_in_path:
+            distance = graph[current_node][neighbor]
+            for sub_path, sub_distance in _dfs(
+                path + [neighbor],
+                neighbor,
+                current_distance + distance,
+            ):
+                if sub_distance > best_distance:
+                    best_path = sub_path
+                    best_distance = sub_distance
+        if best_path:
+            cache[cache_key] = best_path, best_distance
+            yield best_path, best_distance
+        else:
+            cache[cache_key] = None
+
+    yield from _dfs([start_node], start_node, 0)
 
 
 def find_best_path(
@@ -142,7 +186,7 @@ def find_best_path(
 ) -> tuple[PathType, DistanceType]:
     with Timer() as timer:
         best_distance = -ALMOST_INFINITY
-        best_path: PathType = frozenset()
+        best_path: PathType = []
         for path, distance in dfs(graph, start_node, end_node):
             logger.info("Found path of length %d", distance)
             if best_distance < distance:
