@@ -79,7 +79,7 @@ def build_graph(board: npt.NDArray[np.uint8], start_node: NodeType) -> GraphType
 
 
 def visualize_path(
-    board: npt.NDArray[np.uint8], path: list[NodeType], distance: DistanceType
+    board: npt.NDArray[np.uint8], path: set[NodeType], distance: DistanceType
 ) -> None:
     cmap = colors.ListedColormap(
         ["yellow", "brown", "green", "green", "green", "green"]
@@ -129,21 +129,6 @@ def dfs(
     yield from _dfs({start_node}, start_node, 0)
 
 
-def format_path(board: npt.NDArray[np.uint8], path: list[NodeType]) -> str:
-    path_set = set(path)
-
-    def format_cell(y: int, x: int, cell: int) -> str:
-        if (y, x) in path_set:
-            return "O"
-        else:
-            return INVERSE_CHAR_MAP[cell]
-
-    return "\n".join(
-        "".join(format_cell(y, x, cell) for x, cell in enumerate(row))
-        for y, row in enumerate(board)
-    )
-
-
 @wrap_main
 def main(filename: Path) -> str:
     board = parse_board(filename, CHAR_MAP)
@@ -158,7 +143,7 @@ def main(filename: Path) -> str:
 
     almost_infinity = 2**32
     best_distance = -almost_infinity
-    best_path: list[NodeType] = []
+    best_path: set[NodeType] = set()
     for path, distance in dfs(graph, start_node, end_node):
         logger.info("Found path of length %d", distance)
         if best_distance < distance:
