@@ -79,7 +79,7 @@ def build_graph(board: npt.NDArray[np.uint8], start_node: NodeType) -> GraphType
 
 
 def visualize_path(
-    board: npt.NDArray[np.uint8], path: set[NodeType], distance: DistanceType
+    board: npt.NDArray[np.uint8], path: frozenset[NodeType], distance: DistanceType
 ) -> None:
     cmap = colors.ListedColormap(
         ["yellow", "brown", "green", "green", "green", "green"]
@@ -109,12 +109,17 @@ def visualize_path(
     plt.show()
 
 
+ALMOST_INFINITY = 2**32
+
+
 def dfs(
     graph: GraphType, start_node: NodeType, end_node: NodeType
-) -> Iterable[tuple[set[NodeType], DistanceType]]:
+) -> Iterable[tuple[frozenset[NodeType], DistanceType]]:
     def _dfs(
-        path: set[NodeType], current_node: NodeType, current_distance: DistanceType
-    ) -> Iterable[tuple[set[NodeType], DistanceType]]:
+        path: frozenset[NodeType],
+        current_node: NodeType,
+        current_distance: DistanceType,
+    ) -> Iterable[tuple[frozenset[NodeType], DistanceType]]:
         if current_node == end_node:
             yield path, current_distance
         else:
@@ -123,10 +128,12 @@ def dfs(
                     continue
                 else:
                     yield from _dfs(
-                        path | {neighbor}, neighbor, current_distance + distance
+                        frozenset(path | {neighbor}),
+                        neighbor,
+                        current_distance + distance,
                     )
 
-    yield from _dfs({start_node}, start_node, 0)
+    yield from _dfs(frozenset({start_node}), start_node, 0)
 
 
 @wrap_main
@@ -141,8 +148,7 @@ def main(filename: Path) -> str:
     assert start_node in graph
     assert end_node in graph
 
-    almost_infinity = 2**32
-    best_distance = -almost_infinity
+    best_distance = -ALMOST_INFINITY
     best_path: set[NodeType] = set()
     for path, distance in dfs(graph, start_node, end_node):
         logger.info("Found path of length %d", distance)
