@@ -82,7 +82,7 @@ def build_graph(board: BoardType, start_node: NodeType) -> GraphType:
 
 
 def visualize_path(board: BoardType, path: PathType, distance: DistanceType) -> None:
-    cmap = colors.ListedColormap(
+    cmap = colors.ListedColormap(  # type: ignore
         ["yellow", "brown", "green", "green", "green", "green"]
     )
     bounds = [0, 1, 2, 3, 4, 5]
@@ -102,7 +102,7 @@ def visualize_path(board: BoardType, path: PathType, distance: DistanceType) -> 
     for node in path:
         y, x = node
         path_board[y, x] = 1
-    cmap = colors.ListedColormap([(0, 0, 0, 0), (1, 0, 0, 0.5)])
+    cmap = colors.ListedColormap([(0, 0, 0, 0), (1, 0, 0, 0.5)])  # type: ignore
     ax.imshow(path_board, cmap=cmap)
 
     ax.set_title(f"Path length {distance}")
@@ -162,6 +162,7 @@ def main(filename: Path) -> str:
     end_node: NodeType = (height - 1, width - 2)
     graph = build_graph(board, start_node)
     logger.debug("Graph has %d vertices", sum(map(len, graph.values())))
+
     assert start_node in graph
     assert end_node in graph
 
