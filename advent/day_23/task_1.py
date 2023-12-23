@@ -16,6 +16,7 @@ from ..logs import setup_logging
 
 logger = logging.getLogger(__name__)
 
+
 EMPTY = 0
 WALL = 1
 SLOPE_DOWN = 2
@@ -82,6 +83,7 @@ def build_graph(board: BoardType, start_node: NodeType) -> GraphType:
 
 
 def visualize_path(board: BoardType, path: PathType, distance: DistanceType) -> None:
+    cmap: Any
     cmap = colors.ListedColormap(  # type: ignore
         ["yellow", "brown", "green", "green", "green", "green"]
     )
@@ -103,9 +105,8 @@ def visualize_path(board: BoardType, path: PathType, distance: DistanceType) -> 
         y, x = node
         path_board[y, x] = i
         # ax.text(x, y, str(i), ha="center", va="center")
-    cmap: Any
     cmap = cm.get_cmap("Blues", len(path))
-    cmap = colors.ListedColormap([(0, 0, 0, 0)] + [cmap(i) for i in range(len(path))])
+    cmap = colors.ListedColormap([(0, 0, 0, 0)] + [cmap(i) for i in range(len(path))])  # type: ignore # noqa
     ax.imshow(path_board, cmap=cmap)
 
     ax.set_title(f"Path length {distance}")
@@ -179,6 +180,13 @@ def dfs(
             cache[cache_key] = None
 
     yield from _dfs([start_node], start_node, 0)
+    logger.debug(
+        "Cache size %d. Hits: %d, misses: %d, ratio: %.2f",
+        len(cache),
+        cache_hits,
+        cache_misses,
+        cache_hits / (cache_hits + cache_misses),
+    )
 
 
 def find_best_path(
@@ -197,6 +205,44 @@ def find_best_path(
     return best_path, best_distance
 
 
+def simplify_graph(graph: GraphType) -> None:
+    queue: deque[NodeType] = deque(graph)
+
+    def _simplify_node(node_a: NodeType) -> None:
+        for node_b, distance_a_b in graph[node_a].items():
+            if len(graph[node_b]) == 2 and node_a in graph[node_b]:
+                # this node has only two connections, a - b - c
+                # so we can simplify it to a - c
+                (node_c,) = set(graph[node_b]) - {node_a}
+                if node_b not in graph[node_c]:
+                    continue
+                distance_b_c = graph[node_b][node_c]
+                distance_a_c = distance_a_b + distance_b_c
+                graph[node_a][node_c] = distance_a_c
+                graph[node_c][node_a] = distance_a_c
+                del graph[node_a][node_b]
+                del graph[node_b][node_a]
+
+                del graph[node_b][node_c]
+                del graph[node_c][node_b]
+
+                assert not graph[node_b]
+                del graph[node_b]
+
+                # logger.debug(
+                #     "Simplified graph by merging %s --- [%s] --> %s",
+                #     node_a,
+                #     node_b,
+                #     node_c,
+                # )
+                queue.append(node_a)  # recheck for further simplification
+                break
+
+    while queue:
+        node = queue.popleft()
+        _simplify_node(node)
+
+
 @wrap_main
 def main(filename: Path) -> str:
     board = parse_board(filename, CHAR_MAP)
@@ -206,6 +252,8 @@ def main(filename: Path) -> str:
     end_node: NodeType = (height - 1, width - 2)
     graph = build_graph(board, start_node)
     logger.debug("Graph has %d vertices", sum(map(len, graph.values())))
+    simplify_graph(graph)
+    logger.info("Simplified graph has %d vertices", sum(map(len, graph.values())))
 
     assert start_node in graph
     assert end_node in graph
