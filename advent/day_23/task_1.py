@@ -122,7 +122,7 @@ def dfs(
 ) -> Iterable[tuple[PathType, DistanceType]]:
     # cache - current path, current_node -> best path, best distance
     cache: dict[
-        tuple[tuple[NodeType, ...], NodeType], tuple[PathType, DistanceType] | None
+        tuple[frozenset[NodeType], NodeType], tuple[PathType, DistanceType] | None
     ] = {}
     cache_hits: int = 0
     cache_misses: int = 0
@@ -146,7 +146,7 @@ def dfs(
             yield path, current_distance
             return
 
-        cache_key = (tuple(path), current_node)
+        cache_key = (frozenset(path), current_node)
         if cache_key in cache:
             cache_hits += 1
             maybe_log_cache_stats()
@@ -173,11 +173,14 @@ def dfs(
                 if sub_distance > best_distance:
                     best_path = sub_path
                     best_distance = sub_distance
+        min_cache = 15
         if best_path:
-            cache[cache_key] = best_path, best_distance
+            if len(path) < min_cache:
+                cache[cache_key] = best_path, best_distance
             yield best_path, best_distance
         else:
-            cache[cache_key] = None
+            if len(path) < min_cache:
+                cache[cache_key] = None
 
     yield from _dfs([start_node], start_node, 0)
     logger.debug(
