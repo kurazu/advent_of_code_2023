@@ -29,7 +29,7 @@ def main(filename: Path) -> str:
     t_variables: list[sp.Symbol] = []
     equations: list[sp.Eq] = []
 
-    for i, particle in enumerate(particles):
+    for i, particle in enumerate(it.islice(particles, 0, 3)):
         t = sp.Symbol(f"t_{i}")
         t_variables.append(t)
         # stone clashes with particle on X asis
