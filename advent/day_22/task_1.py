@@ -46,7 +46,6 @@ def parse_shape(line: str) -> Shape:
             high_z=start_z,
         )
     else:
-        assert start_x != end_x
         return Shape(
             horizontal_tiles={(start_y, x) for x in range(start_x, end_x + 1)},
             low_z=start_z,
@@ -98,10 +97,16 @@ def main(filename: Path) -> str:
     for shape in shapes:
         logger.debug("Shape: %s", shape)
     logger.debug("Dropping shapes")
-    dropped = drop(shapes)
-    for shape in dropped:
+    shapes = drop(shapes)
+    for shape in shapes:
         logger.debug("Shape: %s", shape)
-    return ""
+
+    def can_be_disintegrated(shape: Shape) -> bool:
+        shapes_without_this_one = [s for s in shapes if s is not shape]
+        dropped = drop(shapes_without_this_one)
+        return dropped == shapes_without_this_one
+
+    return str(mit.ilen(filter(can_be_disintegrated, shapes)))
 
 
 if __name__ == "__main__":
