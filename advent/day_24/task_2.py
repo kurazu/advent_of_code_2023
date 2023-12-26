@@ -1,7 +1,6 @@
 import itertools as it
 import logging
 from pathlib import Path
-from typing import Any, Iterable
 
 import sympy as sp
 from contexttimer import Timer
@@ -9,7 +8,7 @@ from contexttimer import Timer
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
 from ..logs import setup_logging
-from .task_1 import Particle, parse_particle
+from .task_1 import parse_particle
 
 logger = logging.getLogger(__name__)
 
