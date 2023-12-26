@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import itertools as it
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple
 
 import more_itertools as mit
+from tqdm import tqdm
 
 from ..cli_utils import wrap_main
 from ..io_utils import get_stripped_lines
@@ -106,7 +105,9 @@ def main(filename: Path) -> str:
         dropped = drop(shapes_without_this_one)
         return dropped == shapes_without_this_one
 
-    return str(mit.ilen(filter(can_be_disintegrated, shapes)))
+    essential_shapes = filter(can_be_disintegrated, tqdm(shapes, desc="Checking shape"))
+
+    return str(mit.ilen(essential_shapes))
 
 
 if __name__ == "__main__":
