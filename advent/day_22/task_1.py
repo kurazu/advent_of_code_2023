@@ -14,9 +14,9 @@ from ..logs import setup_logging
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(unsafe_hash=True, frozen=True)
 class Shape:
-    horizontal_tiles: set[tuple[int, int]]
+    horizontal_tiles: frozenset[tuple[int, int]]
     low_z: int
     high_z: int
 
@@ -36,17 +36,21 @@ def parse_shape(line: str) -> Shape:
     if start_z != end_z:  # vertical line
         assert start_y == end_y
         assert start_x == end_x
-        return Shape(horizontal_tiles={(start_y, start_x)}, low_z=start_z, high_z=end_z)
+        return Shape(
+            horizontal_tiles=frozenset([(start_y, start_x)]),
+            low_z=start_z,
+            high_z=end_z,
+        )
     elif start_y != end_y:  # horizontal line stretching along y axis
         assert start_x == end_x
         return Shape(
-            horizontal_tiles={(y, start_x) for y in range(start_y, end_y + 1)},
+            horizontal_tiles=frozenset((y, start_x) for y in range(start_y, end_y + 1)),
             low_z=start_z,
             high_z=start_z,
         )
     else:
         return Shape(
-            horizontal_tiles={(start_y, x) for x in range(start_x, end_x + 1)},
+            horizontal_tiles=frozenset((start_y, x) for x in range(start_x, end_x + 1)),
             low_z=start_z,
             high_z=start_z,
         )
@@ -93,12 +97,9 @@ def drop(shapes: list[Shape]) -> list[Shape]:
 def main(filename: Path) -> str:
     lines = get_stripped_lines(filename)
     shapes = sorted(map(parse_shape, lines), key=lambda s: s.low_z)
-    for shape in shapes:
-        logger.debug("Shape: %s", shape)
-    logger.debug("Dropping shapes")
+    logger.debug("Dropping %d shapes", len(shapes))
     shapes = drop(shapes)
-    for shape in shapes:
-        logger.debug("Shape: %s", shape)
+    logger.debug("Analyzing %d shapes", len(shapes))
 
     def can_be_disintegrated(shape: Shape) -> bool:
         shapes_without_this_one = [s for s in shapes if s is not shape]
