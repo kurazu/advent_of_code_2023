@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from uuid import uuid4
 
 import more_itertools as mit
 from tqdm import tqdm
@@ -14,14 +15,16 @@ from ..logs import setup_logging
 logger = logging.getLogger(__name__)
 
 
-@dataclass(unsafe_hash=True, frozen=True)
+@dataclass
 class Shape:
     horizontal_tiles: frozenset[tuple[int, int]]
     low_z: int
     high_z: int
+    id: str = field(default_factory=lambda: str(uuid4()))
 
     def drop(self) -> Shape:
         return Shape(
+            id=self.id,
             horizontal_tiles=self.horizontal_tiles,
             low_z=self.low_z - 1,
             high_z=self.high_z - 1,
